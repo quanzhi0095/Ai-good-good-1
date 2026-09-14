@@ -1,0 +1,1053 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>風機噪音查核站</title>
+<meta name="description" content="蟬鳴團隊將風機噪音三大迷思做成的互動查核工具，可拖曳滑桿與切換視角查看政府公開數據">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700&family=Noto+Sans+TC:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme: light;
+    --page:      #f3f1e8;
+    --paper:     #fbfaf5;
+    --paper-2:   #f6f4ec;
+    --ink:       #16191c;
+    --ink-soft:  #4a4f54;
+    --muted:     #83878c;
+    --line:      #e3ded0;
+    --line-soft: #ece9dd;
+
+    --navy:      #123153;
+    --navy-deep: #0d2340;
+    --navy-tint: #e3edf9;
+    --navy-tint2:#cde2fb;
+
+    --amber:      #c1651f;
+    --amber-deep: #8a4914;
+    --amber-tint: #f7e9d9;
+
+    --teal:      #12876a;
+    --teal-deep: #0b5f4c;
+    --teal-tint: #dcf0e8;
+
+    --chip:      #b1493f;
+    --chip-tint: #f5e2df;
+
+    --font-display: "Noto Serif TC", "Songti TC", serif;
+    --font-body: "Noto Sans TC", "PingFang TC", sans-serif;
+    --font-mono: "IBM Plex Mono", "Noto Sans Mono TC", monospace;
+  }
+
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --page:      #0d1117;
+      --paper:     #151b23;
+      --paper-2:   #1a212b;
+      --ink:       #eceef0;
+      --ink-soft:  #b7bec5;
+      --muted:     #7d8790;
+      --line:      #2a323d;
+      --line-soft: #232a34;
+
+      --navy:      #6fa3e0;
+      --navy-deep: #dce9fa;
+      --navy-tint: #182634;
+      --navy-tint2:#1f3448;
+
+      --amber:      #e0964f;
+      --amber-deep: #f6d9bb;
+      --amber-tint: #2c2113;
+
+      --teal:      #4fc9a6;
+      --teal-deep: #cdf3e6;
+      --teal-tint: #10261f;
+
+      --chip:      #e2837a;
+      --chip-tint: #2c1917;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --page:      #0d1117;
+    --paper:     #151b23;
+    --paper-2:   #1a212b;
+    --ink:       #eceef0;
+    --ink-soft:  #b7bec5;
+    --muted:     #7d8790;
+    --line:      #2a323d;
+    --line-soft: #232a34;
+
+    --navy:      #6fa3e0;
+    --navy-deep: #dce9fa;
+    --navy-tint: #182634;
+    --navy-tint2:#1f3448;
+
+    --amber:      #e0964f;
+    --amber-deep: #f6d9bb;
+    --amber-tint: #2c2113;
+
+    --teal:      #4fc9a6;
+    --teal-deep: #cdf3e6;
+    --teal-tint: #10261f;
+
+    --chip:      #e2837a;
+    --chip-tint: #2c1917;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background: var(--page);
+    color: var(--ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    padding: 0 16px;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{ transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  }
+
+  .wrap{ max-width: 980px; margin: 0 auto; padding-block: 28px 48px; }
+
+  /* ---------------- Header ---------------- */
+  .topbar{
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 28px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .topbar-rings{ position:absolute; right:-90px; top:-120px; width:380px; height:380px; opacity:0.5; pointer-events:none; }
+  .kicker-row{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; position:relative; }
+  .kicker{ font-family:var(--font-mono); font-size:11.5px; letter-spacing:0.08em; color:var(--muted); }
+  .badge{
+    font-family: var(--font-display); font-weight:700; font-size:14px; color:var(--navy);
+    border:1px solid var(--navy-tint2); background:var(--navy-tint); padding:4px 13px; border-radius:999px; white-space:nowrap;
+  }
+  h1{
+    position:relative; font-family:var(--font-display); font-weight:700;
+    font-size: clamp(24px, 4vw, 32px); line-height:1.3; margin: 14px 0 0; text-wrap:balance; color:var(--ink);
+  }
+  h1 em{ font-style:normal; color:var(--navy); }
+  .subhead{ position:relative; font-size:14.5px; color:var(--ink-soft); margin:10px 0 0; max-width:62ch; line-height:1.7; }
+  .meta-row{ position:relative; display:flex; gap:22px; margin-top:18px; flex-wrap:wrap; font-family:var(--font-mono); font-size:11.5px; color:var(--muted); }
+  .meta-row b{ color:var(--ink); font-weight:600; }
+
+  /* ---------------- Tabs ---------------- */
+  .tabs{ display:flex; gap:8px; margin-top:22px; flex-wrap:wrap; }
+  .tab{
+    font-family: var(--font-body); font-weight:600; font-size:13.5px;
+    color: var(--ink-soft); background: var(--paper); border:1px solid var(--line);
+    padding: 10px 18px; border-radius: 999px; cursor:pointer; display:flex; align-items:center; gap:8px;
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .tab .n{ font-family:var(--font-mono); font-size:11px; opacity:0.7; }
+  .tab:hover{ border-color: var(--navy-tint2); }
+  .tab:focus-visible{ outline: 2px solid var(--navy); outline-offset:2px; }
+  /* fixed navy, not var(--navy) — that token turns light in dark mode (it's
+     reused as light-on-dark text elsewhere), which would leave this white
+     text unreadable; a solid filled chip should look the same in both themes */
+  .tab[aria-selected="true"]{ background: #123153; color: #fff; border-color: #123153; }
+  .tab[aria-selected="true"] .n{ opacity:0.85; }
+
+  /* ---------------- Panels ---------------- */
+  .panel{ margin-top:18px; }
+  .card{
+    background: var(--paper); border:1px solid var(--line); border-radius:16px;
+    padding: 26px 30px; display:grid; grid-template-columns: 250px 1fr; gap: 30px;
+  }
+  @media (max-width: 720px){ .card{ grid-template-columns: 1fr; } }
+
+  .myth-col .num{ font-family:var(--font-mono); font-size:12px; letter-spacing:0.08em; color:var(--muted); display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+  .myth-col .dot{ width:7px; height:7px; border-radius:50%; display:inline-block; }
+  .chip{ display:inline-block; font-weight:700; font-size:11px; letter-spacing:0.03em; color:var(--chip); background:var(--chip-tint); padding:2px 9px; border-radius:5px; margin-bottom:8px; }
+  .myth-quote{ font-family:var(--font-display); font-size:18px; font-weight:600; line-height:1.6; color:var(--ink); }
+  .myth-src{ margin-top:14px; font-size:11px; color:var(--muted); line-height:1.6; }
+
+  .work-col{ min-width:0; }
+  .fact-chip{ display:inline-flex; align-items:center; gap:6px; font-weight:700; font-size:11px; letter-spacing:0.03em; color:var(--teal); background:var(--teal-tint); padding:3px 10px 3px 8px; border-radius:999px; margin-bottom:14px; }
+
+  /* slider control */
+  .control-row{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
+  .slider-label{ font-size:12.5px; color:var(--ink-soft); font-weight:600; }
+  input[type=range]{
+    flex:1; min-width:180px; accent-color: var(--navy); height:6px; cursor:pointer;
+  }
+  input[type=range]:focus-visible{ outline:2px solid var(--navy); outline-offset:3px; }
+  .readout{ font-family:var(--font-mono); font-weight:600; font-size:15px; color:var(--navy); min-width:64px; text-align:right; }
+
+  .stat-row{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:18px; }
+  .stat-tile{ flex:1 1 120px; background:var(--paper-2); border:1px solid var(--line-soft); border-radius:10px; padding:12px 14px; }
+  .stat-tile .v{ font-family:var(--font-mono); font-weight:600; font-size:20px; color:var(--navy); font-variant-numeric:tabular-nums; }
+  .stat-tile .l{ font-size:11px; color:var(--ink-soft); margin-top:3px; }
+
+  svg text{ font-family: var(--font-mono); }
+  .chart-box{ background:var(--paper-2); border:1px solid var(--line-soft); border-radius:12px; padding:16px 18px; }
+  .chart-title{ font-size:11.5px; font-weight:700; color:var(--ink-soft); letter-spacing:0.02em; margin:0 0 10px; }
+
+  .note{ margin-top:16px; font-size:12.5px; line-height:1.75; color:var(--ink-soft); background:var(--amber-tint); border-left:3px solid var(--amber); padding:12px 16px; border-radius:0 8px 8px 0; }
+  .note b{ color:var(--amber-deep); }
+
+  /* 判定範圍聲明：刻意跟 .note（amber）區隔用 navy，語意是「這個判定沒有涵蓋什麼」。
+     navy / navy-tint 是成對翻轉的 token，深淺色模式都維持正確對比。 */
+  .scope-note{ margin-top:12px; font-size:12px; line-height:1.75; color:var(--ink-soft); background:var(--navy-tint); border-left:3px solid var(--navy); padding:12px 16px; border-radius:0 8px 8px 0; }
+  .scope-note b{ color:var(--navy); }
+
+  /* 行動建議：工具的最終輸出。判定只是中間產物，這一塊才是使用者真正帶走的東西。 */
+  .action-box{ margin-top:16px; border-top:1px dashed var(--line); padding-top:14px; }
+  .action-head{ font-family:var(--font-mono); font-size:11px; font-weight:700; letter-spacing:0.06em; color:var(--muted); margin-bottom:7px; }
+  .action-body{ font-size:13px; line-height:1.8; color:var(--ink); margin:0; }
+  .action-body b{ color:var(--navy); }
+  /* 地圖頁籤的處境統計列 */
+  .situation-tally{ display:flex; gap:10px; flex-wrap:wrap; margin:14px 0 0; font-size:12px; }
+  .tally-item{ flex:1 1 150px; background:var(--paper-2); border:1px solid var(--line-soft); border-left-width:3px; border-radius:8px; padding:9px 12px; line-height:1.5; }
+  .tally-item .tn{ font-family:var(--font-mono); font-weight:600; font-size:16px; display:block; }
+
+  /* toggle (myth 2) */
+  .toggle-row{ display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap; }
+  .toggle-btn{
+    flex:1 1 200px; font-family:var(--font-body); font-weight:600; font-size:13px; text-align:left;
+    color:var(--ink-soft); background:var(--paper-2); border:1px solid var(--line); border-radius:10px;
+    padding: 12px 16px; cursor:pointer; transition: background .15s, color .15s, border-color .15s;
+  }
+  .toggle-btn .tt{ display:block; font-size:11px; color:var(--muted); font-weight:600; margin-bottom:2px; }
+  .toggle-btn:focus-visible{ outline:2px solid var(--navy); outline-offset:2px; }
+  /* fixed navy — see .tab[aria-selected] note above */
+  .toggle-btn[aria-pressed="true"]{ background:#123153; color:#fff; border-color:#123153; }
+  .toggle-btn[aria-pressed="true"] .tt{ color:#cfe0f5; }
+
+  table.reg{ width:100%; border-collapse:collapse; font-size:12.5px; margin-top:4px; }
+  table.reg th, table.reg td{ padding:7px 8px; text-align:left; border-bottom:1px solid var(--line-soft); }
+  table.reg th{ color:var(--muted); font-weight:600; font-size:11px; }
+  table.reg td.hl{ font-family:var(--font-mono); color:var(--navy); font-weight:600; }
+
+  /* year timeline (myth3) */
+  .play-btn{
+    /* fixed teal — see .tab[aria-selected] note above (var(--teal) turns light in dark mode) */
+    font-family:var(--font-body); font-weight:600; font-size:12.5px; color:#fff; background:#12876a;
+    border:none; border-radius:999px; padding:8px 16px; cursor:pointer; display:flex; align-items:center; gap:6px;
+  }
+  .play-btn:focus-visible{ outline:2px solid var(--teal-deep); outline-offset:2px; }
+  .year-caption{ min-height: 44px; font-size:13px; color:var(--ink-soft); line-height:1.6; margin-top:12px; }
+  .year-caption b{ color:var(--teal-deep); }
+
+  /* footer */
+  /* fixed dark navy regardless of light/dark theme — footer text below is all
+     hardcoded light-on-dark, so this must never resolve to a light color the
+     way --navy-deep does in dark mode (it's reused there as a light accent) */
+  footer{ margin-top:22px; background:#0d2340; color:#d9d7cd; border-radius:16px; padding:28px 32px; }
+  footer h2{ font-family:var(--font-display); font-size:14px; color:#fff; margin:0 0 12px; font-weight:700; }
+  .tool-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:14px; }
+  @media (max-width:720px){ .tool-grid{ grid-template-columns:1fr; } }
+  .tool-item{ font-size:12px; line-height:1.6; color:#c7c5b9; }
+  .tool-item b{ color:#fff; font-weight:600; }
+  .src-block{ margin-top:20px; padding-top:18px; border-top:1px solid rgba(255,255,255,0.14); font-size:10.5px; line-height:1.85; color:#9a988c; }
+  .src-block ol{ margin:6px 0 0; padding-left:16px; }
+  .credit-line{ margin-top:16px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.14); font-family:var(--font-mono); font-size:10.5px; color:#8f8d81; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+  .credit-line b{ color:#fff; font-family:var(--font-display); font-size:13px; font-weight:700; }
+
+  /* ---------------- Map / site simulator (tab 5) ---------------- */
+  .map-box{ background:var(--paper-2); border:1px solid var(--line-soft); border-radius:12px; padding:12px; }
+  .map-box svg{ width:100%; height:auto; display:block; touch-action:none; }
+  .drag-grip{ cursor:grab; }
+  .drag-grip:active{ cursor:grabbing; }
+  .map-legend{ display:flex; gap:16px; flex-wrap:wrap; margin-top:10px; font-size:11px; color:var(--muted); }
+  .map-legend span{ display:inline-flex; align-items:center; gap:5px; }
+  .map-legend i{ width:9px; height:9px; border-radius:50%; display:inline-block; }
+
+  .site-row{
+    display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px;
+    background:var(--paper-2); border:1px solid var(--line-soft); margin-bottom:8px;
+  }
+  .site-row .sr-dot{ width:10px; height:10px; border-radius:50%; flex:none; }
+  .site-row .sr-label{ font-weight:600; font-size:12.5px; color:var(--ink); min-width:64px; }
+  .site-row .sr-dist{ font-family:var(--font-mono); font-size:12px; color:var(--ink-soft); min-width:70px; }
+  .site-row .sr-inc{ font-family:var(--font-mono); font-size:12px; color:var(--ink-soft); min-width:70px; }
+  .site-row .sr-verdict{ font-weight:700; font-size:12px; margin-left:auto; padding:3px 10px; border-radius:999px; }
+  .site-row .sr-verdict.ok{ color:var(--teal-deep); background:var(--teal-tint); }
+  .site-row .sr-verdict.bad{ color:var(--amber-deep); background:var(--amber-tint); }
+  /* 情況二自成一色：它既不是「沒事」（teal 會誤導）也不是「違規」（amber 會誤導） */
+  .site-row .sr-verdict.mid{ color:var(--navy); background:var(--navy-tint); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="topbar">
+    <svg class="topbar-rings" viewBox="0 0 380 380" aria-hidden="true">
+      <circle cx="280" cy="90" r="34" fill="none" stroke="var(--navy)" stroke-opacity="0.35" stroke-width="1.3"/>
+      <circle cx="280" cy="90" r="66" fill="none" stroke="var(--navy)" stroke-opacity="0.24" stroke-width="1.3"/>
+      <circle cx="280" cy="90" r="98" fill="none" stroke="var(--navy)" stroke-opacity="0.15" stroke-width="1.3"/>
+      <circle cx="280" cy="90" r="130" fill="none" stroke="var(--navy)" stroke-opacity="0.08" stroke-width="1.3"/>
+    </svg>
+    <div class="kicker-row">
+      <div class="kicker">115年度大專院校能源開放資料創意競賽「用AI．懂能源」・決賽提案</div>
+      <div class="badge">蟬鳴 團隊</div>
+    </div>
+    <h1>風機噪音爭議：<em>為什麼雙方都是對的</em></h1>
+    <p class="subhead">居民說吵得睡不著，開發商說完全合規——<b>兩邊講的都是真話</b>，因為台灣的噪音管制其實有兩把不同的尺。這個查核站用政府公開資料還原這兩把尺，並直接告訴你：你的處境屬於哪一種，以及接下來可以做什麼。</p>
+    <div class="meta-row">
+      <span><b>指導教授</b>　劉瑞弘</span>
+      <span><b>隊長</b>　鄧全志・國立勤益科技大學智慧自動化工程系</span>
+    </div>
+  </header>
+
+  <!-- 頁籤順序＝敘事順序：先給解方（你的處境／地圖），證據放後面支撐。
+       data-tab 仍對應原本的 panel id，DOM 順序不影響顯示（一次只開一個）。 -->
+  <nav class="tabs" role="tablist" aria-label="查核站功能與佐證資料">
+    <button class="tab" role="tab" data-tab="4" aria-selected="true"><span class="n">01</span> 你的處境</button>
+    <button class="tab" role="tab" data-tab="5" aria-selected="false"><span class="n">02</span> 地圖選址模擬</button>
+    <button class="tab" role="tab" data-tab="1" aria-selected="false"><span class="n">03</span> 證據・增量這把尺</button>
+    <button class="tab" role="tab" data-tab="2" aria-selected="false"><span class="n">04</span> 證據・絕對值這把尺</button>
+    <button class="tab" role="tab" data-tab="3" aria-selected="false"><span class="n">05</span> 證據・反向檢驗</button>
+  </nav>
+
+  <!-- ================= MYTH 1 ================= -->
+  <section class="panel" id="panel-1" role="tabpanel" hidden>
+    <div class="card">
+      <div class="myth-col">
+        <div class="num"><span class="dot" style="background:var(--navy)"></span>證據 01・增量這把尺</div>
+        <div><span class="chip">居民常見說法</span></div>
+        <p class="myth-quote">「風機就像飛機一樣吵，住在附近根本沒辦法睡覺。」</p>
+        <p class="myth-src">資料來源：芳苑地區陸域風力發電開發計畫環境影響說明書（修訂本）#27號風機噪音模擬（書件標題為「低頻噪音模擬」，表列單位 dB(A)），案號1111071A，環境部環評書件查詢系統，113年3月。</p>
+      </div>
+      <div class="work-col">
+        <span class="fact-chip">✓ 拖曳查看實際數據</span>
+        <div class="control-row">
+          <span class="slider-label">與風機距離</span>
+          <input type="range" id="distSlider" min="50" max="500" step="1" value="50" aria-label="與風機距離（公尺）">
+          <span class="readout" id="distReadout">50 m</span>
+        </div>
+        <div class="stat-row">
+          <div class="stat-tile"><div class="v" id="incReadout">0.7 dB</div><div class="l">風機噪音增量</div></div>
+          <div class="stat-tile"><div class="v" id="combReadout">44.7 dB</div><div class="l">合成音量（含背景音）</div></div>
+          <div class="stat-tile"><div class="v">44.0 dB</div><div class="l">背景音量（風聲、海浪等）</div></div>
+        </div>
+        <div class="chart-box">
+          <p class="chart-title">合成音量 vs. 日常生活音量（絕對值比較）</p>
+          <svg id="barChart" viewBox="0 0 600 150" style="width:100%;height:auto" role="img" aria-label="音量比較長條圖"></svg>
+        </div>
+        <div class="note"><b>怎麼讀這張圖：</b>距離越遠，風機「增量」越接近 0 dB；此處比較的是「合成音量」（背景音+風機貢獻），可以看到即使在 50 公尺處，也僅略高於室內冷氣運轉音量，遠低於一般交談。數值依環評書件 50–500 公尺共 6 個模擬點內插估算，僅供簡報示意。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MYTH 2 ================= -->
+  <section class="panel" id="panel-2" role="tabpanel" hidden>
+    <div class="card">
+      <div class="myth-col">
+        <div class="num"><span class="dot" style="background:var(--amber)"></span>證據 02・絕對值這把尺</div>
+        <div><span class="chip">居民常見說法</span></div>
+        <p class="myth-quote">「低頻噪音會讓人生病，政府完全沒有保護居民的標準。」</p>
+        <p class="myth-src">資料來源：噪音管制標準第8條，102年8月5日修正，全國法規資料庫；Wu et al., Scientific Reports（Nature portfolio）11:17817, 2021——以 1/3 八度頻帶 20–200 Hz 量測，指標為 LAeq，儀器符合 IEC 61672-1 Class 1 與 ISO 7196。</p>
+      </div>
+      <div class="work-col">
+        <span class="fact-chip">✓ 切換兩種角度</span>
+        <div class="toggle-row">
+          <button class="toggle-btn" id="viewIncBtn" aria-pressed="true"><span class="tt">法規怎麼看</span>增量管制</button>
+          <button class="toggle-btn" id="viewAbsBtn" aria-pressed="false"><span class="tt">研究怎麼看</span>絕對值量測</button>
+        </div>
+
+        <div id="viewInc">
+          <div class="stat-row">
+            <div class="stat-tile"><div class="v">0.1–0.7 dB</div><div class="l">環評模擬之風機噪音增量範圍</div></div>
+            <div class="stat-tile"><div class="v">5 dB(A)</div><div class="l">法規增量管制上限</div></div>
+          </div>
+          <div class="chart-box">
+            <p class="chart-title">增量管制：實測增量 vs. 5 dB(A) 上限</p>
+            <svg viewBox="0 0 600 90" style="width:100%;height:auto" role="img" aria-label="增量管制長條圖">
+              <line x1="40" y1="60" x2="560" y2="60" stroke="var(--line)" stroke-width="1"/>
+              <rect x="40" y="42" width="520" height="20" fill="var(--line-soft)" rx="4"/>
+              <rect x="40" y="42" width="72.8" height="20" fill="var(--navy)" rx="4"/>
+              <line x1="560" y1="30" x2="560" y2="74" stroke="var(--amber)" stroke-width="2" stroke-dasharray="3,3"/>
+              <text x="560" y="24" font-size="11" fill="var(--amber-deep)" text-anchor="end" font-weight="700">5 dB(A) 上限</text>
+              <text x="42" y="24" font-size="11" fill="var(--navy)" font-weight="700">實測 0.1–0.7 dB</text>
+              <text x="40" y="86" font-size="10" fill="var(--muted)">0 dB</text>
+              <text x="560" y="86" font-size="10" fill="var(--muted)" text-anchor="end">5 dB</text>
+            </svg>
+          </div>
+        </div>
+
+        <div id="viewAbs" hidden>
+          <div class="stat-row">
+            <div class="stat-tile"><div class="v">40.8 dB</div><div class="l">距風機124公尺住宅，夜間低頻噪音絕對值</div></div>
+            <div class="stat-tile"><div class="v">36 dB(A)</div><div class="l">第一二類管制區夜間限值</div></div>
+          </div>
+          <div class="chart-box">
+            <p class="chart-title">絕對值量測：實測 40.8 dB vs. 36 dB(A) 限值</p>
+            <svg viewBox="0 0 600 90" style="width:100%;height:auto" role="img" aria-label="絕對值量測長條圖">
+              <line x1="40" y1="60" x2="560" y2="60" stroke="var(--line)" stroke-width="1"/>
+              <rect x="40" y="42" width="520" height="20" fill="var(--line-soft)" rx="4"/>
+              <rect x="40" y="42" width="472" height="20" fill="var(--amber)" rx="4"/>
+              <line x1="456" y1="30" x2="456" y2="74" stroke="var(--navy)" stroke-width="2" stroke-dasharray="3,3"/>
+              <text x="456" y="88" font-size="11" fill="var(--navy)" text-anchor="middle" font-weight="700">36 dB 限值</text>
+              <text x="42" y="88" font-size="10" fill="var(--muted)">0 dB</text>
+              <text x="512" y="24" font-size="11" fill="var(--amber-deep)" text-anchor="end" font-weight="700">實測 40.8 dB</text>
+              <text x="560" y="24" font-size="10" fill="var(--muted)" text-anchor="end">45 dB</text>
+            </svg>
+          </div>
+          <div class="stat-row" style="margin-top:12px">
+            <div class="stat-tile"><div class="v">−3.39%</div><div class="l">低頻噪音每增加7.86dB，心臟自主神經調控功能降幅（中研院，2021）</div></div>
+          </div>
+        </div>
+
+        <details style="margin-top:16px">
+          <summary style="cursor:pointer;font-size:12.5px;font-weight:600;color:var(--ink-soft)">風力發電機組專屬噪音管制標準（完整表）</summary>
+          <table class="reg">
+            <thead><tr><th>管制情境</th><th>日間／晚間</th><th>夜間</th><th>說明</th></tr></thead>
+            <tbody>
+              <tr><td>整體音量門檻</td><td class="hl">超過 50 dB(A)</td><td class="hl">超過 40 dB(A)</td><td>達此門檻時啟動增量管制</td></tr>
+              <tr><td>風機噪音增量上限</td><td colspan="2" class="hl">不得超過背景音量 5 dB(A)</td><td>經認定超標者限期改善，最長不得超過90日（噪音管制法第24條）</td></tr>
+              <tr><td>低頻（20–200Hz）絕對值</td><td class="hl">39 dB(A)</td><td class="hl">36 dB(A)</td><td>第一、二類管制區；與工廠標準（第4條）數值相同</td></tr>
+            </tbody>
+          </table>
+        </details>
+
+        <div class="note"><b>增量 ≠ 絕對值：</b>法規管的是風機造成的「額外增量」；中研院量測的是含背景音在內的「絕對值」。兩者測量對象不同，數字對不上是正常現象——即便增量極小，若當地本已有風聲、海浪等背景噪音，長期總曝量仍可能偏高，這正是兩份資料看似矛盾、實則互補之處。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MYTH 3 ================= -->
+  <section class="panel" id="panel-3" role="tabpanel" hidden>
+    <div class="card">
+      <div class="myth-col">
+        <div class="num"><span class="dot" style="background:var(--teal)"></span>證據 03・反向檢驗</div>
+        <div><span class="chip">居民常見說法</span></div>
+        <p class="myth-quote">「風機噪音讓文蛤大量死亡，對養殖生態造成嚴重破壞。」</p>
+        <p class="myth-src">資料來源：台西風力發電計畫環境影響說明書（107年1月，台灣電力公司）；引用自案號1111071A環評書件。</p>
+      </div>
+      <div class="work-col">
+        <span class="fact-chip">✓ 拖曳年份查看趨勢</span>
+        <div class="control-row">
+          <button class="play-btn" id="playBtn">▶ 播放</button>
+          <input type="range" id="yearSlider" min="0" max="9" step="1" value="0" aria-label="選擇年份" style="flex:1;min-width:160px">
+          <span class="readout" id="yearReadout">95年</span>
+        </div>
+        <div class="chart-box">
+          <p class="chart-title">雲林縣四湖鄉歷年文蛤產量趨勢（95～104年）</p>
+          <svg id="clamChart" viewBox="0 0 700 260" style="width:100%;height:auto" role="img" aria-label="文蛤產量趨勢圖"></svg>
+        </div>
+        <p class="year-caption" id="yearCaption"></p>
+        <div class="note"><b>真正主因並非風機：</b>環評書件指出，近年文蛤產量的劇烈波動主要來自極端氣候導致的水溫與鹽度劇烈變化、溶氧量降低，而非風機運轉所致；噪音、振動、電磁場及眩影四種影響下，文蛤成長無統計上顯著差異。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TOOL: 法規檢核工具 ================= -->
+  <section class="panel" id="panel-4" role="tabpanel">
+    <div class="card">
+      <div class="myth-col">
+        <div class="num"><span class="dot" style="background:var(--chip)"></span>解方・你的處境</div>
+        <div><span class="chip" style="color:var(--navy);background:var(--navy-tint)">實務應用</span></div>
+        <p class="myth-quote">輸入你的距離、背景音量與時段，工具會告訴你落在哪一種處境——以及在現行法規下，你實際可以做什麼。</p>
+        <p class="myth-src">依據：噪音管制標準第8條「風力發電機組」噪音增量管制規定，102年8月5日修正，全國法規資料庫。增量數值與頁籤03、04的證據同源。</p>
+      </div>
+      <div class="work-col">
+        <span class="fact-chip">✓ 輸入情境，得到可執行的下一步</span>
+
+        <div class="control-row">
+          <span class="slider-label">與風機距離</span>
+          <input type="range" id="calcDist" min="50" max="500" step="1" value="150" aria-label="與風機距離（公尺）">
+          <span class="readout" id="calcDistReadout">150 m</span>
+        </div>
+        <div class="control-row">
+          <span class="slider-label">當地背景音量</span>
+          <input type="range" id="calcBg" min="30" max="60" step="1" value="44" aria-label="當地背景音量（dB）">
+          <span class="readout" id="calcBgReadout">44 dB</span>
+        </div>
+        <div class="toggle-row">
+          <button class="toggle-btn" id="calcDayBtn" aria-pressed="true"><span class="tt">時段</span>日間／晚間（門檻 50dB）</button>
+          <button class="toggle-btn" id="calcNightBtn" aria-pressed="false"><span class="tt">時段</span>夜間（門檻 40dB）</button>
+        </div>
+
+        <div class="chart-box" id="verdictBox">
+          <p class="chart-title" id="verdictLabel">你的處境</p>
+          <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap">
+            <div class="v" id="verdictBig" style="font-family:var(--font-mono);font-weight:600;font-size:26px"></div>
+            <div style="font-size:12.5px;color:var(--ink-soft)" id="verdictSub"></div>
+          </div>
+          <div class="stat-row" style="margin-top:14px">
+            <div class="stat-tile"><div class="v" id="calcOverall"></div><div class="l">整體音量（背景+風機增量）</div></div>
+            <div class="stat-tile"><div class="v" id="calcThreshold"></div><div class="l">啟動增量管制之門檻</div></div>
+            <div class="stat-tile"><div class="v" id="calcInc"></div><div class="l">風機噪音增量（＝合成−背景）</div></div>
+            <div class="stat-tile"><div class="v" id="calcModel"></div><div class="l">風機自身音量（與背景無關）</div></div>
+          </div>
+          <p style="font-size:12px;line-height:1.7;color:var(--ink-soft);margin-top:14px" id="verdictLogic"></p>
+          <div class="action-box">
+            <div class="action-head">你可以做什麼</div>
+            <p class="action-body" id="actionBody"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TOOL: 地圖選址模擬 ================= -->
+  <section class="panel" id="panel-5" role="tabpanel" hidden>
+    <div class="card">
+      <div class="myth-col">
+        <div class="num"><span class="dot" style="background:var(--navy)"></span>解方・地圖選址模擬</div>
+        <div><span class="chip" style="color:var(--navy);background:var(--navy-tint)">實務應用</span></div>
+        <p class="myth-quote">把處境判別搬到地圖上——拖曳風機或任一標記，同時看多個地點各自落在哪一種處境，也能反過來測試「風機蓋在這裡，會製造出幾個爭議熱點」。</p>
+        <p class="myth-src">風機與標記的相對距離依比例尺換算為公尺，噪音增量套用與「你的處境」相同的內插模型；地圖為示意排版，非實際地籍座標或地形圖。</p>
+      </div>
+      <div class="work-col">
+        <span class="fact-chip">✓ 拖曳風機或標記，即時看各地點的處境</span>
+
+        <div class="control-row">
+          <span class="slider-label">當地背景音量</span>
+          <input type="range" id="mapBg" min="30" max="60" step="1" value="44" aria-label="當地背景音量（dB）">
+          <span class="readout" id="mapBgReadout">44 dB</span>
+        </div>
+        <div class="toggle-row">
+          <button class="toggle-btn" id="mapDayBtn" aria-pressed="true"><span class="tt">時段</span>日間／晚間（門檻 50dB）</button>
+          <button class="toggle-btn" id="mapNightBtn" aria-pressed="false"><span class="tt">時段</span>夜間（門檻 40dB）</button>
+        </div>
+
+        <div class="map-box">
+          <svg id="siteMap" viewBox="0 0 700 460" role="img" aria-label="風機與周邊地點選址模擬地圖"></svg>
+        </div>
+        <div class="map-legend">
+          <span><i style="background:var(--line)"></i>每圈間距 100 公尺</span>
+          <span>可拖曳：風機本身、住家、學校、養殖區</span>
+        </div>
+
+        <div style="margin-top:16px">
+          <div class="site-row" id="siteRow-house">
+            <span class="sr-dot" style="background:#2f6fb0"></span>
+            <span class="sr-label">住家</span>
+            <span class="sr-dist" id="siteDist-house">— m</span>
+            <span class="sr-inc" id="siteInc-house">增量 —</span>
+            <span class="sr-verdict ok" id="siteVerdict-house">—</span>
+          </div>
+          <div class="site-row" id="siteRow-school">
+            <span class="sr-dot" style="background:#b1493f"></span>
+            <span class="sr-label">學校</span>
+            <span class="sr-dist" id="siteDist-school">— m</span>
+            <span class="sr-inc" id="siteInc-school">增量 —</span>
+            <span class="sr-verdict ok" id="siteVerdict-school">—</span>
+          </div>
+          <div class="site-row" id="siteRow-farm">
+            <span class="sr-dot" style="background:#12876a"></span>
+            <span class="sr-label">養殖區</span>
+            <span class="sr-dist" id="siteDist-farm">— m</span>
+            <span class="sr-inc" id="siteInc-farm">增量 —</span>
+            <span class="sr-verdict ok" id="siteVerdict-farm">—</span>
+          </div>
+        </div>
+
+        <div class="situation-tally">
+          <div class="tally-item" style="border-left-color:var(--amber)"><span class="tn" id="tally-A">0</span>個地點屬於情況一（增量超標）</div>
+          <div class="tally-item" style="border-left-color:var(--navy)"><span class="tn" id="tally-B">0</span>個地點屬於情況二（合規但環境超門檻）</div>
+          <div class="tally-item" style="border-left-color:var(--teal)"><span class="tn" id="tally-C">0</span>個地點屬於情況三（未達門檻）</div>
+        </div>
+
+        <div class="note"><b>怎麼用：</b>拖曳「住家／學校／養殖區」標記，測試既有建物在不同距離下各自落在哪一種處境；拖曳<b>風機本身</b>，則是反過來模擬「如果風機蓋在這個位置」，三個標記會同時更新——這是選址規劃階段就能先行檢核的用法，不必等到環評審查才發現問題。處境判別與增量估算，與第1個頁籤「你的處境」共用同一組邏輯。</div>
+        <div class="scope-note"><b>選址時真正該看的是情況二有幾個：</b>情況一（明確違規）在合理的選址下幾乎不會出現，所以它不是有用的指標。真正決定日後會不會有抗爭的，是<b>落在情況二的地點數量</b>——那些法律上挑不出毛病、但居民實際有感、而且現行制度不會受理的地方。把風機拖到不同位置，看這個數字怎麼變，比看「有沒有違規」有意義得多。</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <h2>AI 工具運用與人工查核</h2>
+    <div class="tool-grid">
+      <div class="tool-item"><b>Claude（Anthropic）</b>——整理環評書件與法規重點，再回查原始文件逐一核實。</div>
+      <div class="tool-item"><b>Python／Matplotlib</b>——依環評書件原始數字重繪產量趨勢，逐筆核對後改寫為本頁互動圖表。</div>
+      <div class="tool-item"><b>Google AI Mode</b>——查證法規年份、官員發言與報導來源。</div>
+    </div>
+    <div class="src-block">
+      本頁所有數據均引自政府公開資料，並經人工逐項回查原始文件後採用。完整資料來源：
+      <ol>
+        <li>芳苑地區陸域風力發電開發計畫環境影響說明書（修訂本），案號1111071A，環境部環評書件查詢系統，113年3月</li>
+        <li>噪音管制標準第8條第二款（風力發電機組）：第一目 20–200Hz 音量標準值（第一、二類夜間 36 dB(A)）；第二目 20Hz–20kHz 增量管制，102年8月5日修正，全國法規資料庫</li>
+        <li>噪音管制法第24條：限期改善期限規定，全國法規資料庫</li>
+        <li>環境資訊中心（2013.8.7）〈台灣首創風機噪音管制標準 低頻比工廠還嚴〉，e-info.org.tw（本站引用該報導係為佐證「2013年訂定風機專屬標準」；其標題所稱「低頻比工廠還嚴」與法規公布文本不符——風機20–200Hz標準值與工廠標準第4條數值相同，本站以法規條文為準）</li>
+        <li>經濟部能源署，再生能源裝置容量統計（115年3月）</li>
+        <li>台西風力發電計畫環境影響說明書（107年1月，台灣電力公司）</li>
+        <li>中研院環境變遷研究中心，低頻噪音與心率研究，2021，《Nature portfolio》</li>
+      </ol>
+    </div>
+    <div class="credit-line">
+      <span><b>蟬鳴</b>　115年度大專院校能源開放資料創意競賽「用AI．懂能源」・決賽提案</span>
+      <span>主辦單位：經濟部能源署　執行單位：財團法人工業技術研究院</span>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var svgNS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs){
+    var e = document.createElementNS(svgNS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  function clear(node){ while(node.firstChild) node.removeChild(node.firstChild); }
+  function cssVar(name){
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || name;
+  }
+
+  /* ---------------- Tabs ---------------- */
+  var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
+  var panels = { "1": document.getElementById("panel-1"), "2": document.getElementById("panel-2"), "3": document.getElementById("panel-3"), "4": document.getElementById("panel-4"), "5": document.getElementById("panel-5") };
+  tabs.forEach(function(btn){
+    btn.addEventListener("click", function(){
+      tabs.forEach(function(b){ b.setAttribute("aria-selected", "false"); });
+      btn.setAttribute("aria-selected", "true");
+      Object.keys(panels).forEach(function(k){ panels[k].hidden = (k !== btn.dataset.tab); });
+    });
+  });
+
+  /* ---------------- Myth 1: distance slider ---------------- */
+  var anchors = [
+    {d:50,  model:36.1, comb:44.7, inc:0.7},
+    {d:100, model:32.0, comb:44.3, inc:0.3},
+    {d:200, model:26.8, comb:44.1, inc:0.1},
+    {d:300, model:23.6, comb:44.0, inc:0.0},
+    {d:400, model:21.1, comb:44.0, inc:0.0},
+    {d:500, model:19.2, comb:44.0, inc:0.0}
+  ];
+  function interp(d){
+    if (d <= anchors[0].d) return anchors[0];
+    if (d >= anchors[anchors.length-1].d) return anchors[anchors.length-1];
+    for (var i=0;i<anchors.length-1;i++){
+      var a=anchors[i], b=anchors[i+1];
+      if (d >= a.d && d <= b.d){
+        var t = (d-a.d)/(b.d-a.d);
+        return {
+          d:d,
+          comb: a.comb + (b.comb-a.comb)*t,
+          inc:  a.inc  + (b.inc -a.inc )*t
+        };
+      }
+    }
+  }
+  var distSlider = document.getElementById("distSlider");
+  var distReadout = document.getElementById("distReadout");
+  var incReadout = document.getElementById("incReadout");
+  var combReadout = document.getElementById("combReadout");
+  var barChart = document.getElementById("barChart");
+
+  function drawBarChart(comb){
+    clear(barChart);
+    var items = [
+      {label:"合成音量（此距離）", value: comb, color: cssVar("--navy")},
+      {label:"室內冷氣運轉音量", value: 45, band:[40,50], color: cssVar("--teal")},
+      {label:"一般正常交談音量", value: 60, color: cssVar("--amber")}
+    ];
+    var padL = 170, padR = 50, W = 600, rowH = 40, top = 14;
+    var maxV = 70;
+    function xPos(v){ return padL + (v/maxV) * (W - padL - padR); }
+    items.forEach(function(it, i){
+      var y = top + i*rowH;
+      barChart.appendChild(el("text", {x: 0, y: y+16, "font-size":11.5, fill: cssVar("--ink-soft"), "font-family":"var(--font-body)"})).textContent = it.label;
+      barChart.appendChild(el("rect", {x: padL, y: y+4, width: W-padL-padR, height: 16, rx:4, fill: cssVar("--line-soft")}));
+      if (it.band){
+        barChart.appendChild(el("rect", {x: xPos(it.band[0]), y: y+4, width: xPos(it.band[1])-xPos(it.band[0]), height:16, rx:4, fill: it.color, "fill-opacity":0.35}));
+      }
+      var barW = Math.max(2, xPos(it.value)-padL);
+      barChart.appendChild(el("rect", {x: padL, y: y+4, width: barW, height:16, rx:4, fill: it.color}));
+      var t = barChart.appendChild(el("text", {x: xPos(it.value)+6, y: y+16, "font-size":11.5, "font-weight":700, fill: it.color}));
+      t.textContent = it.value.toFixed(1).replace(/\.0$/,"") + " dB";
+    });
+  }
+
+  function updateMyth1(){
+    var d = parseFloat(distSlider.value);
+    var r = interp(d);
+    distReadout.textContent = Math.round(d) + " m";
+    incReadout.textContent = "+" + r.inc.toFixed(1) + " dB";
+    combReadout.textContent = r.comb.toFixed(1) + " dB";
+    drawBarChart(r.comb);
+  }
+  distSlider.addEventListener("input", updateMyth1);
+  updateMyth1();
+
+  /* ---------------- Myth 2: toggle ---------------- */
+  var viewIncBtn = document.getElementById("viewIncBtn");
+  var viewAbsBtn = document.getElementById("viewAbsBtn");
+  var viewInc = document.getElementById("viewInc");
+  var viewAbs = document.getElementById("viewAbs");
+  function setView(which){
+    var isInc = which === "inc";
+    viewIncBtn.setAttribute("aria-pressed", isInc ? "true":"false");
+    viewAbsBtn.setAttribute("aria-pressed", isInc ? "false":"true");
+    viewInc.hidden = !isInc;
+    viewAbs.hidden = isInc;
+  }
+  viewIncBtn.addEventListener("click", function(){ setView("inc"); });
+  viewAbsBtn.addEventListener("click", function(){ setView("abs"); });
+
+  /* ---------------- Myth 3: year timeline ---------------- */
+  var years = ["95","96","97","98","99","100","101","102","103","104"];
+  var values = [307, 3150, 1577, 201, 1249, 1965, 4836, 723, 945, 707];
+  var startIdx = 4;
+  var captions = [
+    "95年：風機尚未運轉，文蛤產量 307 公噸。",
+    "96年：風機尚未運轉，文蛤產量攀升至 3,150 公噸——產量本就受氣候、養殖條件影響而大幅波動。",
+    "97年：風機尚未運轉，文蛤產量 1,577 公噸。",
+    "98年：風機運轉前最後一年，文蛤產量降至 201 公噸，波動幅度已相當劇烈。",
+    "99年：台電四湖風場（14座風機）開始運轉。同年文蛤產量 1,249 公噸，較前一年回升。",
+    "100年：風機運轉中，文蛤產量 1,965 公噸，持續回升。",
+    "101年：風機運轉中，文蛤產量創歷年新高 4,836 公噸——並未因風機運轉而下降。",
+    "102年：風機運轉中，文蛤產量降至 723 公噸；環評指出，此類劇烈波動主因是水溫、鹽度與溶氧量變化。",
+    "103年：風機運轉中，文蛤產量 945 公噸。",
+    "104年：風機運轉中，文蛤產量 707 公噸。"
+  ];
+
+  var clamChart = document.getElementById("clamChart");
+  var W=700, H=260, padL=52, padR=24, padT=26, padB=38;
+  var plotW = W-padL-padR, plotH = H-padT-padB, maxV=5000;
+  function xPos(i){ return padL + (plotW/(years.length-1))*i; }
+  function yPos(v){ return padT + plotH - (v/maxV)*plotH; }
+
+  var movingMarker, movingLabel, movingLine;
+
+  function buildClamChartStatic(){
+    clear(clamChart);
+    clamChart.appendChild(el("rect", {
+      x: xPos(startIdx), y: padT, width: plotW-(xPos(startIdx)-padL), height: plotH,
+      fill: cssVar("--teal"), "fill-opacity":0.08
+    }));
+    [0,1000,2000,3000,4000,5000].forEach(function(gv){
+      var gy = yPos(gv);
+      clamChart.appendChild(el("line", {x1:padL,y1:gy,x2:W-padR,y2:gy, stroke:cssVar("--line"), "stroke-width":1}));
+      var lab = el("text", {x:padL-8, y:gy+3, "font-size":9.5, fill:cssVar("--muted"), "text-anchor":"end"});
+      lab.textContent = gv.toLocaleString();
+      clamChart.appendChild(lab);
+    });
+    clamChart.appendChild(el("line", {x1:xPos(startIdx), y1:padT, x2:xPos(startIdx), y2:padT+plotH, stroke:cssVar("--teal"), "stroke-width":1.3, "stroke-dasharray":"3,3"}));
+    var startLab = el("text", {x:xPos(startIdx)+5, y:padT+11, "font-size":9.5, fill:cssVar("--teal-deep"), "font-weight":600});
+    startLab.textContent = "風機開始運轉（99年）";
+    clamChart.appendChild(startLab);
+    years.forEach(function(y,i){
+      var lab = el("text", {x:xPos(i), y:H-10, "font-size":10, fill:cssVar("--ink-soft"), "text-anchor":"middle"});
+      lab.textContent = y+"年";
+      clamChart.appendChild(lab);
+    });
+    var d = values.map(function(v,i){ return (i===0?"M":"L")+xPos(i).toFixed(1)+","+yPos(v).toFixed(1); }).join(" ");
+    clamChart.appendChild(el("path", {d:d, fill:"none", stroke:cssVar("--teal-deep"), "stroke-width":2.4, "stroke-linejoin":"round", "stroke-linecap":"round"}));
+    values.forEach(function(v,i){
+      clamChart.appendChild(el("circle", {cx:xPos(i), cy:yPos(v), r:3, fill:cssVar("--paper"), stroke:cssVar("--teal-deep"), "stroke-width":1.8, "data-pt":i}));
+    });
+    movingLine = clamChart.appendChild(el("line", {x1:0,y1:padT,x2:0,y2:padT+plotH, stroke:cssVar("--navy"), "stroke-width":1.4, "stroke-dasharray":"2,3"}));
+    movingMarker = clamChart.appendChild(el("circle", {cx:0, cy:0, r:6, fill:cssVar("--navy"), stroke:cssVar("--paper"), "stroke-width":2}));
+    movingLabel = clamChart.appendChild(el("text", {x:0, y:0, "font-size":12, "font-weight":700, fill:cssVar("--navy"), "text-anchor":"middle"}));
+  }
+
+  var yearSlider = document.getElementById("yearSlider");
+  var yearReadout = document.getElementById("yearReadout");
+  var yearCaption = document.getElementById("yearCaption");
+
+  function updateMyth3(){
+    var i = parseInt(yearSlider.value, 10);
+    var v = values[i];
+    yearReadout.textContent = years[i] + "年";
+    yearCaption.innerHTML = captions[i];
+    var mx = xPos(i), my = yPos(v);
+    movingLine.setAttribute("x1", mx); movingLine.setAttribute("x2", mx);
+    movingMarker.setAttribute("cx", mx); movingMarker.setAttribute("cy", my);
+    movingLabel.setAttribute("x", mx); movingLabel.setAttribute("y", my-14);
+    movingLabel.textContent = v.toLocaleString();
+  }
+  buildClamChartStatic();
+  yearSlider.addEventListener("input", updateMyth3);
+  updateMyth3();
+
+  var playBtn = document.getElementById("playBtn");
+  var playTimer = null;
+  playBtn.addEventListener("click", function(){
+    if (playTimer){ clearInterval(playTimer); playTimer = null; playBtn.textContent = "▶ 播放"; return; }
+    playBtn.textContent = "⏸ 暫停";
+    var i = parseInt(yearSlider.value, 10);
+    playTimer = setInterval(function(){
+      i = (i+1) % years.length;
+      yearSlider.value = i;
+      updateMyth3();
+      if (i === years.length-1){ clearInterval(playTimer); playTimer=null; playBtn.textContent="▶ 播放"; }
+    }, 900);
+  });
+
+  /* ---------------- Tool: 法規檢核工具 ---------------- */
+  var calcDist = document.getElementById("calcDist");
+  var calcBg = document.getElementById("calcBg");
+  var calcDistReadout = document.getElementById("calcDistReadout");
+  var calcBgReadout = document.getElementById("calcBgReadout");
+  var calcDayBtn = document.getElementById("calcDayBtn");
+  var calcNightBtn = document.getElementById("calcNightBtn");
+  var verdictBig = document.getElementById("verdictBig");
+  var verdictSub = document.getElementById("verdictSub");
+  var verdictLogic = document.getElementById("verdictLogic");
+  var verdictBox = document.getElementById("verdictBox");
+  var actionBody = document.getElementById("actionBody");
+  var calcOverall = document.getElementById("calcOverall");
+  var calcThreshold = document.getElementById("calcThreshold");
+  var calcInc = document.getElementById("calcInc");
+  var calcModel = document.getElementById("calcModel");
+  var calcPeriod = "day"; // "day" (日間/晚間, 50dB) or "night" (夜間, 40dB)
+
+  function setPeriod(p){
+    calcPeriod = p;
+    calcDayBtn.setAttribute("aria-pressed", p === "day" ? "true" : "false");
+    calcNightBtn.setAttribute("aria-pressed", p === "night" ? "true" : "false");
+    updateCalc();
+  }
+  calcDayBtn.addEventListener("click", function(){ setPeriod("day"); });
+  calcNightBtn.addEventListener("click", function(){ setPeriod("night"); });
+
+  /* ---- 處境判別：工具的核心 ----------------------------------------
+     刻意不輸出二元的「合規／不合規」。理由是用這組真實環評數據，增量在 50m 處
+     也只有 0.7dB，二元判定永遠會是「合規」，使用者拿不到任何可行動的資訊——
+     那就只是一個動畫。真正有意義的分界是「法規有沒有在管你這件事」，因此拆成
+     三種處境，每一種都對應一組實際可以採取的行動。
+     situationOf() 同時供第4、5頁籤使用，確保兩邊結論一致。                */
+  function situationOf(inc, bg, period){
+    var overall = bg + inc;
+    var threshold = period === "night" ? 40 : 50;
+    var triggered = overall > threshold;
+    var code = !triggered ? "C" : (inc > 5 ? "A" : "B");
+    return { inc:inc, overall:overall, threshold:threshold, triggered:triggered, code:code };
+  }
+  var SITUATIONS = {
+    A: {
+      title: "⚠ 情況一：風機增量超標",
+      short: "增量超標",
+      sub: "已違反增量管制，有明確的法律依據可要求改善",
+      tone: "--amber",
+      action: "依噪音管制標準，主管機關得依噪音管制法第24條命限期改善（此類設施<b>最長不得超過90日</b>）。居民可記錄發生的時間與地點，向<b>地方環保局陳情</b>，要求現場稽查與實測。這是三種處境中，現行法規最站得住腳的一種。"
+    },
+    B: {
+      title: "◐ 情況二：風機合規，但環境已超過門檻",
+      short: "合規・環境超門檻",
+      sub: "最常見、也是爭議最多的地帶——雙方各執一詞通常都發生在這裡",
+      tone: "--navy",
+      action: "整體音量已超過管制門檻，但其中<b>絕大部分來自背景音</b>（風聲、海浪），風機自身的增量仍在法定範圍內，因此現行增量管制<b>不會</b>要求業者改善——這就是居民覺得吵、業者拿得出合規證明的原因，兩邊都沒有說謊。若實際感受仍然強烈，可向地方環保局<b>申請低頻噪音實測</b>：低頻另有絕對值限值（第一、二類管制區夜間 36 dB），屬於另一套標準，有機會在那一套下成立。要強調的是：低頻絕對值標準<b>早已存在</b>（噪音管制標準第8條二（一），第一、二類管制區夜間 36 dB(A)），並非法規空白。真正的落差在於——增量那一條被用來證明合規，低頻絕對值這一條卻未必被檢驗。所以你要求的不是修法，是<b>適用一條2013年就存在的標準</b>。"
+    },
+    C: {
+      title: "✓ 情況三：未達管制門檻",
+      short: "未達門檻",
+      sub: "整體音量低於門檻，法規不啟動增量管制",
+      tone: "--teal",
+      action: "此情境下法規不啟動增量管制，通常也不會有爭議。若你身處這樣的條件卻仍有明顯感受，可能集中在<b>低頻或特定頻段</b>——全頻平均值反映不出來，仍可要求低頻噪音實測確認。"
+    }
+  };
+
+  /* ---- 可替換的案場資料 ---------------------------------------------
+     解方分頁（你的處境／地圖／文件）改用 caseAnchors，與證據分頁的原始
+     anchors 分開。這樣載入別的環評書件時，證據分頁仍然忠實呈現芳苑#27
+     的原始案例，不會被覆蓋。                                            */
+  var DEFAULT_CASE = {
+    label:  "芳苑 #27 號風機（環評案號 1111071A）",
+    name:   "芳苑地區陸域風力發電開發計畫",
+    caseNo: "1111071A",
+    unit:   "第 27 號風力發電機組",
+    src:    "環境影響說明書（修訂本），案號 1111071A，環境部環評書件查詢系統，113 年 3 月",
+    baseBg: 44.0,  // 環評模擬所假設的背景音量
+    anchors: anchors.map(function(a){ return { d:a.d, inc:a.inc, model:a.model }; }),
+  };
+  var activeCase = DEFAULT_CASE;
+  var caseAnchors = DEFAULT_CASE.anchors;
+
+  function lerpField(d, field){
+    var A = caseAnchors;
+    if (!A.length) return 0;
+    if (d <= A[0].d) return A[0][field];
+    if (d >= A[A.length - 1].d) return A[A.length - 1][field];
+    for (var i = 0; i < A.length - 1; i++){
+      var a = A[i], b = A[i + 1];
+      if (d >= a.d && d <= b.d){
+        return a[field] + (b[field] - a[field]) * ((d - a.d) / (b.d - a.d));
+      }
+    }
+    return 0;
+  }
+
+  /* 風機「自身」音量——與背景無關，是這組資料裡唯一描述風機本身的量 */
+  function modelAt(d){ return lerpField(d, "model"); }
+  function hasModel(){ return caseAnchors.length > 0 && caseAnchors[0].model != null; }
+
+  /* 增量必須依「使用者設定的背景」重新計算，不能直接套用書件表列值。
+     書件表列的 0.1–0.7 dB 是在「背景 44 dB」這個前提下算出來的：
+     增量 = 10log10(10^(bg/10) + 10^(model/10)) − bg
+     背景越安靜，同一支風機的增量就越大（44dB→0.7；32dB→5.5，已超過法規上限）。
+     先前直接內插表列增量是錯的，會讓背景滑桿失去作用。 */
+  function incAt(d, bg){
+    if (!caseAnchors.length) return 0;
+    if (!hasModel()) return lerpField(d, "inc"); // 載入的資料若只有增量，維持書件前提
+    var m = modelAt(d);
+    return 10 * Math.log10(Math.pow(10, bg / 10) + Math.pow(10, m / 10)) - bg;
+  }
+
+  function updateCalc(){
+    var d = parseFloat(calcDist.value);
+    var bg = parseFloat(calcBg.value);
+    calcDistReadout.textContent = Math.round(d) + " m";
+    calcBgReadout.textContent = bg.toFixed(0) + " dB";
+
+    var s = situationOf(incAt(d, bg), bg, calcPeriod);
+    var def = SITUATIONS[s.code];
+
+    calcOverall.textContent = s.overall.toFixed(1) + " dB";
+    calcThreshold.textContent = s.threshold + " dB";
+    calcInc.textContent = "+" + s.inc.toFixed(1) + " dB";
+    calcModel.textContent = hasModel() ? modelAt(d).toFixed(1) + " dB" : "—";
+
+    verdictBig.textContent = def.title;
+    verdictBig.style.color = cssVar(def.tone);
+    verdictBox.style.borderColor = cssVar(def.tone);
+    verdictSub.textContent = def.sub;
+    actionBody.innerHTML = def.action;
+
+    if (!s.triggered){
+      verdictLogic.innerHTML = "整體音量 " + s.overall.toFixed(1) + " dB 未超過 " + s.threshold + " dB 門檻，依第8條規定不啟動增量管制。";
+    } else if (s.code === "B"){
+      verdictLogic.innerHTML = "整體音量 " + s.overall.toFixed(1) + " dB 超過 " + s.threshold + " dB 門檻，啟動增量管制；風機增量 +" + s.inc.toFixed(1) + " dB 未超過 5 dB(A) 上限，因此增量管制這一條判定符合。";
+    } else {
+      verdictLogic.innerHTML = "整體音量 " + s.overall.toFixed(1) + " dB 超過 " + s.threshold + " dB 門檻，啟動增量管制；風機增量 +" + s.inc.toFixed(1) + " dB 已超過 5 dB(A) 上限。";
+    }
+  }
+  calcDist.addEventListener("input", updateCalc);
+  calcBg.addEventListener("input", updateCalc);
+  updateCalc();
+
+  /* ---------------- Tool: 地圖選址模擬 ----------------
+     Variable names are prefixed (MAP_/site*) on purpose — this file already
+     has module-level W/H/padL/padR/xPos/yPos etc. for the myth-3 chart, and
+     reusing those names here would silently reassign them, corrupting the
+     clam chart the next time it redraws. */
+  var siteMap = document.getElementById("siteMap");
+  var MAP_W = 700, MAP_H = 460, MAP_SCALE = 0.42; // px per metre (500m -> 210px)
+  var turbine = { x: 300, y: 230 };
+  var sites = [
+    { id:"house",  label:"住家",   color:"#2f6fb0", x: 300 + 150*MAP_SCALE, y: 230 - 40 },
+    { id:"school", label:"學校",   color:"#b1493f", x: 300 - 70*MAP_SCALE,  y: 230 + 330*MAP_SCALE },
+    { id:"farm",   label:"養殖區", color:"#12876a", x: 300 + 300*MAP_SCALE, y: 230 + 170*MAP_SCALE }
+  ];
+
+  var mapBg = document.getElementById("mapBg");
+  var mapBgReadout = document.getElementById("mapBgReadout");
+  var mapDayBtn = document.getElementById("mapDayBtn");
+  var mapNightBtn = document.getElementById("mapNightBtn");
+  var mapPeriod = "day";
+
+  function setMapPeriod(p){
+    mapPeriod = p;
+    mapDayBtn.setAttribute("aria-pressed", p === "day" ? "true" : "false");
+    mapNightBtn.setAttribute("aria-pressed", p === "night" ? "true" : "false");
+    updateSites();
+  }
+  mapDayBtn.addEventListener("click", function(){ setMapPeriod("day"); });
+  mapNightBtn.addEventListener("click", function(){ setMapPeriod("night"); });
+  mapBg.addEventListener("input", function(){ mapBgReadout.textContent = mapBg.value + " dB"; updateSites(); });
+
+  function svgPoint(evt){
+    var pt = siteMap.createSVGPoint();
+    pt.x = evt.clientX; pt.y = evt.clientY;
+    var m = siteMap.getScreenCTM();
+    if (!m) return { x:0, y:0 };
+    var p = pt.matrixTransform(m.inverse());
+    return { x:p.x, y:p.y };
+  }
+  function clampToMap(x, y){
+    return { x: Math.max(20, Math.min(MAP_W-20, x)), y: Math.max(20, Math.min(MAP_H-20, y)) };
+  }
+
+  var mapDragging = null; // the {x,y} object currently being dragged (turbine or a site)
+  function startMapDrag(target){
+    return function(evt){
+      evt.preventDefault();
+      mapDragging = target;
+      if (siteMap.setPointerCapture) siteMap.setPointerCapture(evt.pointerId);
+    };
+  }
+  siteMap.addEventListener("pointermove", function(evt){
+    if (!mapDragging) return;
+    var raw = svgPoint(evt);
+    var p = clampToMap(raw.x, raw.y);
+    mapDragging.x = p.x; mapDragging.y = p.y;
+    renderSiteMap();
+    updateSites();
+  });
+  function endMapDrag(){ mapDragging = null; }
+  siteMap.addEventListener("pointerup", endMapDrag);
+  siteMap.addEventListener("pointerleave", endMapDrag);
+
+  function turbineIcon(x, y){
+    var g = el("g", { "class":"drag-grip", transform:"translate("+x+","+y+")" });
+    g.appendChild(el("circle", { cx:0, cy:0, r:20, fill:"transparent" }));
+    g.appendChild(el("line", { x1:0, y1:2, x2:0, y2:26, stroke: cssVar("--ink-soft"), "stroke-width":2.4, "stroke-linecap":"round" }));
+    [0,120,240].forEach(function(rot){
+      g.appendChild(el("line", { x1:0, y1:0, x2:0, y2:-15, stroke:"#123153", "stroke-width":3, "stroke-linecap":"round", transform:"rotate("+rot+")" }));
+    });
+    g.appendChild(el("circle", { cx:0, cy:0, r:3, fill:"#123153" }));
+    var lab = el("text", { x:0, y:38, "font-size":10.5, "font-weight":700, fill:"#123153", "text-anchor":"middle", "font-family":"var(--font-body)" });
+    lab.textContent = "風機";
+    g.appendChild(lab);
+    return g;
+  }
+  function siteIcon(site){
+    var g = el("g", { "class":"drag-grip", transform:"translate("+site.x+","+site.y+")" });
+    g.appendChild(el("circle", { cx:0, cy:0, r:16, fill:"transparent" }));
+    g.appendChild(el("circle", { cx:0, cy:0, r:7, fill: site.color, stroke: cssVar("--paper"), "stroke-width":2 }));
+    var t = el("text", { x:0, y:-12, "font-size":10.5, "font-weight":700, fill: site.color, "text-anchor":"middle", "font-family":"var(--font-body)" });
+    t.textContent = site.label;
+    g.appendChild(t);
+    return g;
+  }
+
+  function renderSiteMap(){
+    clear(siteMap);
+    [100,200,300,400,500].forEach(function(d){
+      siteMap.appendChild(el("circle", { cx: turbine.x, cy: turbine.y, r: d*MAP_SCALE, fill:"none", stroke: cssVar("--line"), "stroke-width":1 }));
+    });
+    var rlab = el("text", { x: Math.min(turbine.x + 500*MAP_SCALE, MAP_W-6) - 4, y: Math.max(turbine.y - 6, 14), "font-size":9.5, fill: cssVar("--muted"), "text-anchor":"end" });
+    rlab.textContent = "500m";
+    siteMap.appendChild(rlab);
+
+    var tg = turbineIcon(turbine.x, turbine.y);
+    tg.addEventListener("pointerdown", startMapDrag(turbine));
+    siteMap.appendChild(tg);
+
+    sites.forEach(function(site){
+      var mg = siteIcon(site);
+      mg.addEventListener("pointerdown", startMapDrag(site));
+      siteMap.appendChild(mg);
+    });
+  }
+
+  /* 與第4頁籤共用同一個 situationOf()，兩邊結論必定一致 */
+  function updateSites(){
+    var bg = parseFloat(mapBg.value);
+    var tally = { A:0, B:0, C:0 };
+    sites.forEach(function(site){
+      var distPx = Math.hypot(site.x - turbine.x, site.y - turbine.y);
+      var distM = distPx / MAP_SCALE;
+      var s = situationOf(incAt(distM, bg), bg, mapPeriod);
+      tally[s.code]++;
+      document.getElementById("siteDist-"+site.id).textContent = Math.round(distM) + " m";
+      document.getElementById("siteInc-"+site.id).textContent = "增量 +" + s.inc.toFixed(1) + " dB";
+      var vb = document.getElementById("siteVerdict-"+site.id);
+      vb.textContent = SITUATIONS[s.code].short;
+      vb.className = "sr-verdict " + (s.code === "A" ? "bad" : s.code === "B" ? "mid" : "ok");
+    });
+    ["A","B","C"].forEach(function(code){
+      var node = document.getElementById("tally-"+code);
+      if (node) node.textContent = tally[code];
+    });
+  }
+
+  mapBgReadout.textContent = mapBg.value + " dB";
+  renderSiteMap();
+  updateSites();
+})();
+</script>
+
+</body>
+</html>
