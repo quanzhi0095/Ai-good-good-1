@@ -203,6 +203,42 @@
   .action-head{ font-family:var(--font-mono); font-size:11px; font-weight:700; letter-spacing:0.06em; color:var(--muted); margin-bottom:7px; }
   .action-body{ font-size:13px; line-height:1.8; color:var(--ink); margin:0; }
   .action-body b{ color:var(--navy); }
+  /* 文件產生器：工具的最終產出。使用者帶走的是一份文件，不是一句建議。 */
+  .doc-gen{ margin-top:16px; border:1px solid var(--navy-tint2); background:var(--navy-tint); border-radius:12px; padding:16px 18px; }
+  .doc-gen-head{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+  .dg-title{ font-family:var(--font-display); font-size:15px; font-weight:700; color:var(--ink); }
+  .dg-sub{ font-size:11.5px; color:var(--ink-soft); margin-top:3px; max-width:46ch; line-height:1.6; }
+  /* 固定深藍：var(--navy) 在深色模式會翻成淺色，白字會看不見 */
+  .dg-btn{ font-family:var(--font-body); font-weight:700; font-size:13px; color:#fff; background:#123153;
+           border:none; border-radius:999px; padding:10px 22px; cursor:pointer; white-space:nowrap; }
+  .dg-btn:focus-visible{ outline:2px solid var(--navy); outline-offset:3px; }
+  .dg-btn.ghost{ color:var(--navy); background:transparent; border:1px solid var(--navy-tint2);
+                 font-weight:600; padding:6px 14px; font-size:12px; }
+  .doc-out{ margin-top:14px; }
+  #docText{ font-family:var(--font-mono); font-size:11px; line-height:1.85; color:var(--ink);
+            background:var(--paper); border:1px solid var(--line); border-radius:8px;
+            padding:14px 16px; margin:0; white-space:pre-wrap; word-break:break-word;
+            max-height:360px; overflow-y:auto; }
+  .dg-actions{ display:flex; align-items:center; gap:10px; margin-top:10px; flex-wrap:wrap; }
+  .dg-hint{ font-size:11.5px; color:var(--teal-deep); font-weight:600; }
+  /* 資料來源切換：讓工具可以吃別的環評書件，而不是寫死一個案場 */
+  .case-bar{ display:flex; align-items:center; justify-content:space-between; gap:12px;
+             flex-wrap:wrap; background:var(--paper-2); border:1px solid var(--line-soft);
+             border-radius:10px; padding:10px 14px; margin-bottom:16px; }
+  .case-label{ font-family:var(--font-mono); font-size:10.5px; color:var(--muted); display:block; }
+  .case-name{ font-size:12.5px; font-weight:600; color:var(--ink); }
+  .case-panel{ background:var(--paper-2); border:1px solid var(--line-soft); border-radius:10px;
+               padding:14px 16px; margin-bottom:16px; }
+  .case-hint{ font-size:12px; line-height:1.7; color:var(--ink-soft); margin:0 0 10px; }
+  .case-hint b{ color:var(--navy); }
+  #caseInput{ width:100%; font-family:var(--font-body); font-size:12.5px; line-height:1.6;
+              color:var(--ink); background:var(--paper); border:1px solid var(--line);
+              border-radius:8px; padding:10px 12px; resize:vertical; box-sizing:border-box; }
+  #caseInput:focus-visible{ outline:2px solid var(--navy); outline-offset:2px; }
+  .case-table{ width:100%; border-collapse:collapse; font-size:12px; margin:12px 0 0; }
+  .case-table th,.case-table td{ padding:6px 8px; text-align:left; border-bottom:1px solid var(--line-soft); }
+  .case-table th{ color:var(--muted); font-weight:600; font-size:10.5px; }
+  .case-table td{ font-family:var(--font-mono); color:var(--ink); }
   /* 地圖頁籤的處境統計列 */
   .situation-tally{ display:flex; gap:10px; flex-wrap:wrap; margin:14px 0 0; font-size:12px; }
   .tally-item{ flex:1 1 150px; background:var(--paper-2); border:1px solid var(--line-soft); border-left-width:3px; border-radius:8px; padding:9px 12px; line-height:1.5; }
@@ -451,6 +487,31 @@
       <div class="work-col">
         <span class="fact-chip">✓ 輸入情境，得到可執行的下一步</span>
 
+        <div class="case-bar">
+          <div>
+            <span class="case-label">目前套用的環評資料</span>
+            <span class="case-name" id="caseName">芳苑 #27 號風機（環評案號 1111071A）</span>
+          </div>
+          <button class="dg-btn ghost" id="loadCaseBtn">換成其他環評資料</button>
+        </div>
+
+        <div class="case-panel" id="casePanel" hidden>
+          <p class="case-hint">貼上環評書件中的噪音模擬段落或表格，讓 AI 讀出「距離—噪音增量」的對應數值。<b>擷取結果會先列出來讓你核對，確認無誤才會套用</b>——與本提案「先找資料、後用AI、逐筆回查」的原則一致，AI 不會自己決定任何數字。</p>
+          <textarea id="caseInput" rows="5" placeholder="貼上環評書件原文，例如：距機組 50 公尺處噪音增量 0.7 分貝、100 公尺 0.3 分貝、200 公尺 0.1 分貝……&#10;（或用「距離,增量」每行一筆的格式，直接解析不需連線）"></textarea>
+          <div class="dg-actions">
+            <button class="dg-btn" id="aiParseBtn" hidden>讓 AI 讀出數值</button>
+            <button class="dg-btn ghost" id="manualParseBtn">直接解析</button>
+            <button class="dg-btn ghost" id="resetCaseBtn">復原為芳苑示範資料</button>
+            <span class="dg-hint" id="caseHint"></span>
+          </div>
+          <div id="casePreview" hidden>
+            <table class="case-table" id="caseTable"></table>
+            <div class="dg-actions">
+              <button class="dg-btn" id="applyCaseBtn">核對無誤，套用</button>
+            </div>
+          </div>
+        </div>
+
         <div class="control-row">
           <span class="slider-label">與風機距離</span>
           <input type="range" id="calcDist" min="50" max="500" step="1" value="150" aria-label="與風機距離（公尺）">
@@ -484,6 +545,28 @@
             <p class="action-body" id="actionBody"></p>
           </div>
         </div>
+        <div class="doc-gen">
+          <div class="doc-gen-head">
+            <div>
+              <div class="dg-title">帶走一份可以直接遞出去的文件</div>
+              <div class="dg-sub">依你目前的情境，把環評書件裡開發商自己申報的數值、適用法條與具體請求，組成一份完整的申請書。</div>
+            </div>
+            <button class="dg-btn" id="genDocBtn">產生文件</button>
+          </div>
+          <div class="doc-out" id="docOut" hidden>
+            <pre id="docText"></pre>
+            <div class="dg-actions">
+              <button class="dg-btn ghost" id="copyDocBtn">複製全文</button>
+              <button class="dg-btn ghost" id="dlDocBtn">下載 .txt</button>
+              <span class="dg-hint" id="dgHint"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="scope-note" style="margin-top:16px"><b>為什麼「增量」會這麼小？</b>因為增量是<b>減出來的差</b>，不是風機的音量。在 50 公尺處，風機自身音量是 36.1 dB，而環評假設的背景音量是 44.0 dB——風機比背景還低了 8 dB，兩者相加幾乎不會讓總量上升，所以增量只有 0.7 dB。這是對數相加的結果，不代表風機安靜。<b>拖動上面的背景音量滑桿就會看到</b>：同一支風機，背景 44 dB 時增量 0.7 dB；背景 32 dB 時增量變成 5.5 dB，已超過法規 5 dB 上限。真正描述風機本身的數字，是上方的「風機自身音量」。</div>
+
+        <div class="note"><b>試試看 124 公尺、夜間：</b>這正是中研院實測的那一戶。本工具會判為情況二，而中研院在同一距離量到的夜間低頻絕對值是 40.8 dB、超過 36 dB 限值。<b>兩個結論同時成立</b>——一個管風機「額外加了多少」，一個管居民「總共聽到多少」。這就是爭議的根源。</div>
+        <div class="scope-note"><b>判定範圍與資料限制：</b>本工具判定的是第8條的「<b>噪音增量</b>」管制——風機相對背景音的額外增加量；<b>不涵蓋絕對值限值</b>（低頻夜間 36 dB LAeq 屬另一套判定，見頁籤04）。增量數值依環評書件 50–500 公尺共 6 個模擬點內插估算，僅供示意；實際案場仍須以正式環評模擬與現場實測為準。<br>另註：該環評表格標題為「低頻噪音模擬」，數值單位為 dB(A)。台灣低頻噪音管制本身即以 20–200 Hz 頻段之 LAeq 表示，故單位為 dB(A) 並不等於全頻指標；該表究屬分頻或全頻，須以書件表頭所載頻率範圍為準。本工具的增量判定在兩種解讀下結論一致。</div>
       </div>
     </div>
   </section>
@@ -877,7 +960,7 @@
      書件表列的 0.1–0.7 dB 是在「背景 44 dB」這個前提下算出來的：
      增量 = 10log10(10^(bg/10) + 10^(model/10)) − bg
      背景越安靜，同一支風機的增量就越大（44dB→0.7；32dB→5.5，已超過法規上限）。
-     先前直接內插表列增量是錯的，會讓背景滑桿失去作用。 */
+     先前直接內插表列增量是錯的，會讓背景滑桿失去作用、並讓生成的申請書寫錯數字。 */
   function incAt(d, bg){
     if (!caseAnchors.length) return 0;
     if (!hasModel()) return lerpField(d, "inc"); // 載入的資料若只有增量，維持書件前提
@@ -916,6 +999,265 @@
   calcDist.addEventListener("input", updateCalc);
   calcBg.addEventListener("input", updateCalc);
   updateCalc();
+
+  /* ---- 換一份環評資料 -----------------------------------------------
+     讓工具不只綁死在芳苑 #27。AI 只負責「讀出數字」這一個動作，而且擷取
+     結果一定要先列表給人核對、按下套用才生效——AI 不會自己決定任何數值，
+     這跟整份提案「先找資料、後用AI、逐筆回查」的原則是同一條。
+     若 sample 能力不可用（未授權／離線），AI 按鈕隱藏，「直接解析」仍可用。 */
+  var loadCaseBtn = document.getElementById("loadCaseBtn");
+  var casePanel   = document.getElementById("casePanel");
+  var caseInput   = document.getElementById("caseInput");
+  var aiParseBtn  = document.getElementById("aiParseBtn");
+  var manualBtn   = document.getElementById("manualParseBtn");
+  var resetCaseBtn= document.getElementById("resetCaseBtn");
+  var casePreview = document.getElementById("casePreview");
+  var caseTable   = document.getElementById("caseTable");
+  var applyCaseBtn= document.getElementById("applyCaseBtn");
+  var caseHint    = document.getElementById("caseHint");
+  var caseNameEl  = document.getElementById("caseName");
+  var pending = null;
+
+  function caseMsg(m){ caseHint.textContent = m; }
+
+  loadCaseBtn.addEventListener("click", function(){
+    casePanel.hidden = !casePanel.hidden;
+    loadCaseBtn.textContent = casePanel.hidden ? "換成其他環評資料" : "收起";
+  });
+
+  function showPreview(obj){
+    if (!obj || !obj.points || obj.points.length < 2){
+      casePreview.hidden = true; pending = null;
+      caseMsg("沒有讀到足夠的數值（至少需要 2 筆距離）");
+      return;
+    }
+    obj.points.sort(function(a, b){ return a.d - b.d; });
+    pending = obj;
+    var h = "<thead><tr><th>距離（公尺）</th><th>噪音增量（分貝）</th></tr></thead><tbody>";
+    obj.points.forEach(function(p){
+      h += "<tr><td>" + p.d + "</td><td>+" + Number(p.inc).toFixed(1) + "</td></tr>";
+    });
+    h += "</tbody>";
+    caseTable.innerHTML = h;
+    casePreview.hidden = false;
+    caseMsg("請逐筆核對與原始文件是否一致");
+  }
+
+  manualBtn.addEventListener("click", function(){
+    var pts = [];
+    caseInput.value.split(/\n+/).forEach(function(line){
+      var m = line.match(/(-?\d+(?:\.\d+)?)\s*[,，\t]\s*(-?\d+(?:\.\d+)?)/);
+      if (m) pts.push({ d: parseFloat(m[1]), inc: parseFloat(m[2]) });
+    });
+    showPreview({ points: pts });
+  });
+
+  resetCaseBtn.addEventListener("click", function(){
+    activeCase = DEFAULT_CASE; caseAnchors = DEFAULT_CASE.anchors;
+    caseNameEl.textContent = DEFAULT_CASE.label;
+    calcDist.min = 50; calcDist.max = 500; calcDist.value = 150;
+    casePreview.hidden = true; pending = null; caseInput.value = "";
+    caseMsg("已復原為芳苑示範資料");
+    updateCalc(); updateSites();
+  });
+
+  applyCaseBtn.addEventListener("click", function(){
+    if (!pending) return;
+    caseAnchors = pending.points.map(function(p){ return { d: +p.d, inc: +p.inc }; });
+    activeCase = {
+      label:  (pending.caseName || "自行載入的環評資料") + (pending.caseNo ? "（案號 " + pending.caseNo + "）" : ""),
+      name:   pending.caseName || "＿＿＿＿＿＿＿＿（請填入開發計畫名稱）",
+      caseNo: pending.caseNo   || "＿＿＿＿＿＿",
+      unit:   pending.unit     || "＿＿＿＿＿＿",
+      src:    "環境影響說明書，環境部環評書件查詢系統",
+    };
+    caseNameEl.textContent = activeCase.label;
+    var lo = caseAnchors[0].d, hi = caseAnchors[caseAnchors.length - 1].d;
+    calcDist.min = Math.floor(lo); calcDist.max = Math.ceil(hi);
+    if (+calcDist.value < lo || +calcDist.value > hi) calcDist.value = Math.round((lo + hi) / 2);
+    casePreview.hidden = true; pending = null;
+    caseMsg("已套用，共 " + caseAnchors.length + " 筆");
+    updateCalc(); updateSites();
+  });
+
+  /* AI 擷取：只有 sample 能力可用時才顯示按鈕 */
+  if (window.claude && typeof window.claude.use === "function") {
+    window.claude.use("sample").then(function(api){
+      if (!api) return;
+      aiParseBtn.hidden = false;
+      aiParseBtn.addEventListener("click", function(){
+        var text = caseInput.value.trim();
+        if (text.length < 10){ caseMsg("請先貼上環評書件的段落"); return; }
+        aiParseBtn.disabled = true; caseMsg("AI 讀取中……");
+        api.json([{ role: "user", content:
+          "以下是台灣環境影響評估書件中關於風力發電機組噪音模擬的內容。請擷取「與風機的距離（公尺）」" +
+          "與「該距離的風機噪音增量（分貝）」的對應數值。\n\n" +
+          "只回傳 JSON，不要任何其他文字：\n" +
+          '{"caseName":"開發計畫名稱，找不到填空字串","caseNo":"環評案號，找不到填空字串",' +
+          '"unit":"機組編號，找不到填空字串","points":[{"d":距離公尺,"inc":增量分貝}]}\n\n' +
+          "規則：points 至少 2 筆並依距離由小到大排序；只擷取文件中明確出現的數值，" +
+          "絕對不要推估、內插或補齊沒寫的數字；若文件只給「合成音量」與「背景音量」，" +
+          "則增量＝合成音量−背景音量。\n\n文件內容：\n<<<\n" + text + "\n>>>"
+        }], { modelTier: "default" }).then(function(res){
+          aiParseBtn.disabled = false;
+          showPreview(res);
+        }).catch(function(err){
+          aiParseBtn.disabled = false;
+          var c = err && err.code;
+          if (c === "not_granted") { aiParseBtn.hidden = true; caseMsg("未授權使用 AI，請改用「直接解析」"); }
+          else if (c === "rate_limited") caseMsg("請稍候再試");
+          else caseMsg("AI 讀取失敗，請改用「直接解析」");
+        });
+      });
+    }, function(){ /* 能力不可用時維持隱藏 */ });
+  }
+
+  /* ---- 文件產生器 -------------------------------------------------
+     這是整個工具的終點。原本這裡只寫「你可以向環保局申請實測」——那是把
+     事情丟回給使用者。現在直接把申請書生出來：內容全部由環評書件與法規
+     條文組成，使用者只要填姓名住址就能遞出去。
+     附註段落刻意保留資料限制說明，避免這份文件看起來比原始資料更權威。  */
+  var genDocBtn = document.getElementById("genDocBtn");
+  var docOut = document.getElementById("docOut");
+  var docText = document.getElementById("docText");
+  var copyDocBtn = document.getElementById("copyDocBtn");
+  var dlDocBtn = document.getElementById("dlDocBtn");
+  var dgHint = document.getElementById("dgHint");
+
+  var REQUESTS = {
+    A: [
+      "（一）請求就本人住所進行風力發電機組噪音現場實測。",
+      "（二）本案風機噪音增量已逾背景音量加五分貝之上限，請求依噪音管制法",
+      "　　　第二十四條命開發單位限期改善。",
+      "（三）請求併同量測低頻噪音絕對值，以確認是否另有超標情形。",
+    ],
+    B: [
+      "（一）請求就本人住所進行風力發電機組噪音現場實測。",
+      "（二）請求併同量測低頻噪音絕對值（二十至二百赫茲），並依第一、二類",
+      "　　　管制區夜間三十六分貝限值判定是否超標。",
+      "（三）如實測結果超過低頻噪音限值，請求依法命開發單位提出改善。",
+      "",
+      "　　說明：依全頻噪音增量管制，本案風機增量未逾法定上限；惟整體音量",
+      "　　　　　已逾管制門檻，其超出部分主要來自背景音量。現行增量管制並",
+      "　　　　　未涵蓋低頻噪音絕對值，爰請求併同量測，以完整評估本人住所",
+      "　　　　　之實際受影響情形。",
+    ],
+    C: [
+      "（一）請求提供本人住所周邊風力發電機組之噪音實測紀錄。",
+      "（二）本人雖依環評模擬資料推算未達管制門檻，惟仍有明顯噪音感受，",
+      "　　　爰請求就低頻噪音絕對值進行量測，以確認是否集中於特定頻段。",
+    ],
+  };
+
+  function rocDate(){
+    var t = new Date();
+    return "中華民國 " + (t.getFullYear() - 1911) + " 年 " + (t.getMonth() + 1) + " 月 " + t.getDate() + " 日";
+  }
+
+  function buildDoc(){
+    var d = Math.round(parseFloat(calcDist.value));
+    var bg = parseFloat(calcBg.value);
+    var s = situationOf(incAt(d, bg), bg, calcPeriod);
+    var periodTxt = calcPeriod === "night" ? "夜間" : "日間／晚間";
+    var L = [];
+    L.push("　　　　風力發電機組噪音　實測暨查核申請書");
+    L.push("");
+    L.push("受文者：　　　　　　縣（市）政府環境保護局");
+    L.push("申請日期：" + rocDate());
+    L.push("");
+    L.push("一、申請人");
+    L.push("　　姓名：＿＿＿＿＿＿＿＿　　聯絡電話：＿＿＿＿＿＿＿＿");
+    L.push("　　住址：＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿");
+    L.push("");
+    L.push("二、標的開發案");
+    L.push("　　案　　名：" + activeCase.name);
+    L.push("　　環評案號：" + activeCase.caseNo + "（環境部環評書件查詢系統）");
+    L.push("　　標的機組：" + activeCase.unit);
+    L.push("");
+    L.push("三、事實陳述");
+    L.push("　　（一）本人住所距上開風力發電機組約 " + d + " 公尺。");
+    L.push("　　（二）依該案環境影響說明書（修訂本）所載噪音模擬資料，該距離之");
+    L.push("　　　　　風機噪音增量約為 +" + s.inc.toFixed(1) + " 分貝。");
+    L.push("　　（三）本人所在環境之背景音量約為 " + bg.toFixed(0) + " 分貝，合計整體音量");
+    L.push("　　　　　約為 " + s.overall.toFixed(1) + " 分貝。");
+    L.push("　　（四）本申請所涉時段為" + periodTxt + "，其管制門檻為 " + s.threshold + " 分貝。");
+    L.push("　　（五）綜上，整體音量" + (s.triggered ? "已逾" : "未逾") + "管制門檻；風機噪音增量" +
+           (s.code === "A" ? "已逾" : "未逾"));
+    L.push("　　　　　背景音量加五分貝之上限。");
+    L.push("");
+    L.push("四、法規依據");
+    L.push("　　（一）噪音管制標準第 8 條第二款第二目：風力發電機組 20 赫至 20 千赫");
+    L.push("　　　　　之噪音增量管制規定。");
+    L.push("　　　　　（102 年 8 月 5 日修正）。");
+    L.push("　　（二）噪音管制標準第 8 條第二款第一目：風力發電機組 20 赫至 200 赫");
+    L.push("　　　　　之音量標準值，第一、二類管制區夜間為 36 分貝。");
+    L.push("");
+    L.push("五、具體請求");
+    REQUESTS[s.code].forEach(function(line){ L.push(line ? "　　" + line : ""); });
+    L.push("");
+    L.push("六、資料出處");
+    L.push("　　1. " + activeCase.name + activeCase.src + "。");
+    L.push("　　2. 噪音管制標準第 8 條及低頻噪音管制規定，102 年 8 月 5 日修正，");
+    L.push("　　　 全國法規資料庫（law.moj.gov.tw）。");
+    L.push("");
+    L.push("附註：本文件由「風機噪音查核站」依上開政府公開資料自動生成。其中噪");
+    L.push("　　　音增量係依環評書件 50 至 500 公尺共 6 個模擬點內插估算，僅供申");
+    L.push("　　　請參考；實際數值仍以主管機關現場實測結果為準。");
+    return L.join("\n");
+  }
+
+  function flashHint(msg){
+    dgHint.textContent = msg;
+    setTimeout(function(){ if (dgHint.textContent === msg) dgHint.textContent = ""; }, 2600);
+  }
+
+  genDocBtn.addEventListener("click", function(){
+    docText.textContent = buildDoc();
+    docOut.hidden = false;
+    genDocBtn.textContent = "依目前情境重新產生";
+    dgHint.textContent = "";
+  });
+
+  copyDocBtn.addEventListener("click", function(){
+    var txt = docText.textContent;
+    function fallback(){
+      var ta = document.createElement("textarea");
+      ta.value = txt; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); flashHint("已複製到剪貼簿"); }
+      catch (e) { flashHint("請手動選取上方文字複製"); }
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(function(){ flashHint("已複製到剪貼簿"); }, fallback);
+    } else { fallback(); }
+  });
+
+  /* 下載：必須走 artifact 的 downloads 能力。一般的 <a download> 或 blob URL
+     在 artifact 檢視器裡不會有任何作用——按下去沒反應，現場示範會很難看。
+     所以按鈕預設隱藏，只有在能力真的拿到時才顯示；拿不到就只留「複製全文」，
+     那條路在任何環境都能用。 */
+  var downloadsApi = null;
+  dlDocBtn.hidden = true;
+  if (window.claude && typeof window.claude.use === "function") {
+    window.claude.use("downloads").then(function(api){
+      if (!api) return;
+      downloadsApi = api;
+      dlDocBtn.hidden = false;
+    }, function(){ /* 維持隱藏 */ });
+  }
+
+  dlDocBtn.addEventListener("click", function(){
+    if (!downloadsApi) return;
+    downloadsApi.save({ filename: "風機噪音實測申請書.txt", data: docText.textContent })
+      .then(function(){ flashHint("已儲存"); })
+      .catch(function(err){
+        var code = err && err.code;
+        if (code === "declined") { flashHint("已取消儲存"); }
+        else if (code === "rate_limited") { flashHint("請稍候再按一次"); }
+        else { flashHint("此環境無法儲存，請改用「複製全文」"); dlDocBtn.hidden = true; }
+      });
+  });
 
   /* ---------------- Tool: 地圖選址模擬 ----------------
      Variable names are prefixed (MAP_/site*) on purpose — this file already
@@ -1047,6 +1389,23 @@
   renderSiteMap();
   updateSites();
 })();
+</script>
+
+<script>
+/* 離線／本機開啟時，window.claude 不存在：AI 讀取與下載按鈕會自動隱藏
+   （程式已處理），這裡補一行說明，避免使用者以為功能壞掉。 */
+window.addEventListener("DOMContentLoaded", function(){
+  setTimeout(function(){
+    if (window.claude && typeof window.claude.use === "function") return;
+    var panel = document.querySelector(".case-panel .case-hint");
+    if (panel) {
+      var n = document.createElement("div");
+      n.style.cssText = "margin-top:8px;font-size:11.5px;color:var(--muted);line-height:1.6";
+      n.textContent = "（本機離線版：AI 讀取與 .txt 下載需在線上版使用；此處請用「直接解析」輸入「距離,增量」每行一筆，並用「複製全文」取得申請書。）";
+      panel.appendChild(n);
+    }
+  }, 1200);
+});
 </script>
 
 </body>
