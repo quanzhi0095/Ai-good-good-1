@@ -210,8 +210,6 @@
   .dg-btn.ghost{ color:var(--navy); background:transparent; }
   .ai-panel{ margin-bottom:16px; border:1px solid var(--line-soft); background:var(--paper-2); border-radius:12px; padding:14px 16px; }
   .case-hint{ font-size:11.5px; line-height:1.7; color:var(--ink-soft); margin:0 0 10px; }
-  #caseInput{ width:100%; font-family:var(--font-body); font-size:12.5px; line-height:1.6; color:var(--ink); background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:10px 12px; resize:vertical; }
-  #caseInput:focus-visible{ outline:2px solid var(--navy); outline-offset:2px; }
   .dg-actions{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:10px; }
   .dg-hint{ font-size:11.5px; color:var(--muted); }
   .case-table{ width:100%; border-collapse:collapse; font-size:12px; margin-top:10px; }
@@ -483,10 +481,17 @@
         </div>
 
         <div class="ai-panel" id="casePanel" hidden>
-          <p class="case-hint">貼上環評書件中的噪音模擬段落或表格，讓 <b>AI</b> 讀出「距離—噪音增量」的對應數值。擷取結果會先列出來讓你核對，<b>確認無誤才會套用</b>——與本提案「先找資料、後用AI、逐筆回查」的原則一致，AI 不會自己決定任何數字。</p>
-          <textarea id="caseInput" rows="5" placeholder="貼上環評書件原文，例如：距機組 50 公尺處噪音增量 0.7 分貝、100 公尺 0.3 分貝、200 公尺 0.1 分貝……"></textarea>
+          <p class="case-hint">上傳一份環評書件 PDF，讓 <b>AI</b> 直接讀取文件裡（含圖表、表格圖片）「距離—噪音增量」的對應數值。擷取結果會先列出來讓你核對，<b>確認無誤才會套用</b>——與本提案「先找資料、後用AI、逐筆回查」的原則一致，AI 不會自己決定任何數字。</p>
           <div class="dg-actions">
-            <button class="dg-btn" id="aiParseBtn">讓 AI 讀出數值</button>
+            <label class="dg-btn ghost" id="pdfPickLabel" style="cursor:pointer">
+              選擇 PDF 檔案
+              <input type="file" id="pdfFileInput" accept="application/pdf" style="display:none">
+            </label>
+            <button class="dg-btn ghost" id="useDemoPdfBtn">使用芳苑範例 PDF</button>
+            <span class="dg-hint" id="pdfFileName">尚未選擇檔案</span>
+          </div>
+          <div class="dg-actions">
+            <button class="dg-btn" id="aiParseBtn" disabled>讓 AI 讀出數值</button>
             <button class="dg-btn ghost" id="resetCaseBtn">復原為芳苑示範資料</button>
             <span class="dg-hint" id="caseHint"></span>
           </div>
@@ -977,13 +982,15 @@
   calcBg.addEventListener("input", updateCalc);
   updateCalc();
 
-  /* ---- AI 讀出數值：把環評書件原文丟給自架伺服器（代理呼叫 Claude API），
+  /* ---- AI 讀出數值：把環評書件 PDF 丟給自架伺服器（代理呼叫 Gemini API），
      讀出「距離,增量」的對照表，使用者核對無誤後才套用到 caseAnchors。
      伺服器連不上或逾時，都不讓頁面卡死，只顯示提示文字。              */
   (function(){
     var loadCaseBtn = document.getElementById("loadCaseBtn");
     var casePanel = document.getElementById("casePanel");
-    var caseInput = document.getElementById("caseInput");
+    var pdfFileInput = document.getElementById("pdfFileInput");
+    var useDemoPdfBtn = document.getElementById("useDemoPdfBtn");
+    var pdfFileName = document.getElementById("pdfFileName");
     var aiParseBtn = document.getElementById("aiParseBtn");
     var resetCaseBtn = document.getElementById("resetCaseBtn");
     var applyCaseBtn = document.getElementById("applyCaseBtn");
@@ -992,6 +999,7 @@
     var caseTable = document.getElementById("caseTable");
     var caseNameEl = document.getElementById("caseName");
     var pendingPoints = null;
+    var pendingFile = null; // File 或 Blob，等按下「讓 AI 讀出數值」時送出
     if (!loadCaseBtn) return;
 
     loadCaseBtn.addEventListener("click", function(){
@@ -1001,10 +1009,44 @@
     resetCaseBtn.addEventListener("click", function(){
       activeCase = DEFAULT_CASE; caseAnchors = DEFAULT_CASE.anchors;
       caseNameEl.textContent = "芳苑 #27 號風機（環評案號 1111071A）";
-      caseInput.value = "";
+      pendingFile = null;
+      pdfFileInput.value = "";
+      pdfFileName.textContent = "尚未選擇檔案";
+      aiParseBtn.disabled = true;
       casePreview.hidden = true;
       caseHint.textContent = "已復原為芳苑示範資料";
       updateCalc();
+    });
+
+    pdfFileInput.addEventListener("change", function(){
+      var f = pdfFileInput.files && pdfFileInput.files[0];
+      if (!f) return;
+      pendingFile = f;
+      pdfFileName.textContent = f.name + "（" + (f.size/1024).toFixed(0) + " KB）";
+      aiParseBtn.disabled = false;
+      caseHint.textContent = "";
+    });
+
+    useDemoPdfBtn.addEventListener("click", function(){
+      useDemoPdfBtn.disabled = true;
+      pdfFileName.textContent = "下載範例 PDF 中…";
+      fetch("./fangyuan-demo.pdf")
+        .then(function(res){
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          return res.blob();
+        })
+        .then(function(blob){
+          pendingFile = blob;
+          pdfFileInput.value = "";
+          pdfFileName.textContent = "芳苑範例 PDF（案號 1111071A，" + (blob.size/1024).toFixed(0) + " KB）";
+          aiParseBtn.disabled = false;
+          useDemoPdfBtn.disabled = false;
+        })
+        .catch(function(){
+          pdfFileName.textContent = "尚未選擇檔案";
+          caseHint.textContent = "範例 PDF 讀取失敗，請確認 fangyuan-demo.pdf 是否已放在同一個網站資料夾";
+          useDemoPdfBtn.disabled = false;
+        });
     });
 
     function showPreview(points){
@@ -1017,18 +1059,19 @@
     }
 
     aiParseBtn.addEventListener("click", function(){
-      var text = caseInput.value.trim();
-      if (!text){ caseHint.textContent = "請先貼上環評書件文字"; return; }
+      if (!pendingFile){ caseHint.textContent = "請先選擇 PDF 檔案，或使用芳苑範例 PDF"; return; }
       aiParseBtn.disabled = true;
-      caseHint.textContent = "AI 讀取中…";
+      caseHint.textContent = "AI 讀取 PDF 中…（整份文件較大時可能要多等幾秒）";
       casePreview.hidden = true;
+      var form = new FormData();
+      form.append("file", pendingFile, pendingFile.name || "document.pdf");
       var ctrl = ("AbortController" in window) ? new AbortController() : null;
       var timedOut = false;
       var timer = setTimeout(function(){ timedOut = true; if (ctrl) ctrl.abort(); }, AI_TIMEOUT_MS);
       fetch(AI_SERVER_BASE + "/parse", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "1" },
-        body: JSON.stringify({ text: text }),
+        headers: { "ngrok-skip-browser-warning": "1" }, // 不設 Content-Type，讓瀏覽器自己帶 multipart boundary
+        body: form,
         signal: ctrl ? ctrl.signal : undefined
       }).then(function(res){
         clearTimeout(timer);
@@ -1037,7 +1080,7 @@
       }).then(function(data){
         aiParseBtn.disabled = false;
         if (!data || !data.points || !data.points.length){
-          caseHint.textContent = "AI 沒有在文字裡找到可用的距離／增量數字，請確認貼上的段落包含這些資訊";
+          caseHint.textContent = "AI 沒有在這份 PDF 裡找到可用的距離／增量數字，請確認檔案內容，或直接使用下方滑桿手動輸入";
           return;
         }
         caseHint.textContent = "AI 讀出 " + data.points.length + " 筆，請核對後套用";
@@ -1046,7 +1089,7 @@
         clearTimeout(timer);
         aiParseBtn.disabled = false;
         caseHint.textContent = timedOut
-          ? "AI 服務逾時未回應（可能伺服器離線），請稍後再試，或直接使用下方滑桿手動輸入"
+          ? "AI 服務逾時未回應（可能伺服器離線，或PDF較大處理較久），請稍後再試，或直接使用下方滑桿手動輸入"
           : "AI 服務暫時連不上，請確認伺服器是否開著，或直接使用下方滑桿手動輸入";
       });
     });
